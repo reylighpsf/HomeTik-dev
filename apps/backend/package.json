@@ -1,0 +1,34 @@
+{
+  "name": "@hometik/backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "dev:backend": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.5.0",
+    "@supabase/supabase-js": "^2.47.0",
+    "next": "^15.1.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@hometik/shared-types": "*",
+    "@tailwindcss/postcss": "^4.3.5",
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.6.2",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^15.1.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^5.7.0"
+  }
+}

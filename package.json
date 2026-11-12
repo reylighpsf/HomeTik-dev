@@ -1,0 +1,27 @@
+{
+  "name": "hometik-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:backend": "npm --prefix apps/backend run dev",
+    "dev:web": "npm --prefix apps/backend run dev",
+    "dev:mobile": "npm --prefix apps/mobile run start",
+    "build:backend": "npm --prefix apps/backend run build",
+    "build:web": "npm --prefix apps/backend run build",
+    "lint": "npm run lint --workspaces",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "npm@10.0.0",
+  "devDependencies": {
+    "ajv": "^8.20.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  }
+}
