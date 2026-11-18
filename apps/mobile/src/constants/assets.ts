@@ -1,6 +1,28 @@
+import { DEFAULT_AVATAR_URI } from './default-avatar-uri';
+
+export const DEFAULT_AVATAR = require('../../assets/default-avatar.png');
+
+/**
+ * Helper untuk mendapatkan image source avatar:
+ * Jika user sudah mengunggah foto profil, gunakan URL tersebut.
+ * Jika belum mengunggah atau masih mode tamu, gunakan default avatar siluet abu-abu.
+ */
+export const getAvatarSource = (avatarUrl?: string | null) => {
+  if (
+    avatarUrl &&
+    typeof avatarUrl === 'string' &&
+    avatarUrl.trim().length > 0 &&
+    !avatarUrl.includes('placeholder') &&
+    !avatarUrl.includes('lh3.googleusercontent.com/aida-public')
+  ) {
+    return { uri: avatarUrl };
+  }
+  return DEFAULT_AVATAR;
+};
+
 export const ASSETS = {
-  userAvatar:
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuDY7DnQD8dZQzFEG27JzuPEGapneyhZzocKjFn9COQ4LKUuGsFip45wAXAogdqdoAqpvfLxPxb59tf_COqacOvpH2PIzs0UoNOoaLoPtsCLqAhLxxUecXp-8hprl-6sDFXNTpDJ7d2SBTL0OXehMVFeEvsORlOH2TtGe9dIKRDrfN5yermkYmt1gu3Np9jBZsOaEkuJ-3rCczkZCiQhbr00gDXRZ1Dy7T8aporrKA8q',
+  defaultAvatar: DEFAULT_AVATAR_URI,
+  userAvatar: DEFAULT_AVATAR_URI,
   heroBarber1:
     'https://lh3.googleusercontent.com/aida-public/AB6AXuACfu4O73YZ-uXrNCXTYOX42fc_rDrsmvY_k7AzTNgSbZ3t4XKN3ljsiUA7YgXuNKR-8u3DB7XO4uXPeZoUzeKwlgHJtEBWBtqHkVjHZdC-vou5DDh3d_sQP9O98kCGS5XWXSg22Nm11soAorS2dX6vHse_Oaa94J2wqcSZHbQ84ALGYfGBL4PTmFU7CiDCK7khjRcTclIINv3PoIP_LR0wJovPmNu0-MhKPs1KwSUx',
   heroBarber2:

@@ -109,6 +109,7 @@ export async function POST(request: Request) {
       email,
       phone: phone || null,
       role,
+      avatar_url: 'https://ossralrurmrtnxyctdqs.supabase.co/storage/v1/object/public/avatars/default-avatar.png',
       updated_at: new Date().toISOString(),
     });
 

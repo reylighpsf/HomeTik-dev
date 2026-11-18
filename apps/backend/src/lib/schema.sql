@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   name        VARCHAR(255)  NOT NULL,
   email       VARCHAR(255)  UNIQUE,
   phone       VARCHAR(20),
-  avatar_url  TEXT,
+  avatar_url  TEXT          DEFAULT 'https://ossralrurmrtnxyctdqs.supabase.co/storage/v1/object/public/avatars/default-avatar.png',
   created_at  TIMESTAMPTZ   NOT NULL DEFAULT now(),
   updated_at  TIMESTAMPTZ   NOT NULL DEFAULT now()
 );
@@ -200,7 +200,7 @@ BEGIN
     user_name_val,
     NEW.email,
     COALESCE(NEW.phone, NEW.raw_user_meta_data->>'phone'),
-    NEW.raw_user_meta_data->>'avatar_url'
+    COALESCE(NEW.raw_user_meta_data->>'avatar_url', 'https://ossralrurmrtnxyctdqs.supabase.co/storage/v1/object/public/avatars/default-avatar.png')
   )
   ON CONFLICT (id) DO UPDATE
   SET
