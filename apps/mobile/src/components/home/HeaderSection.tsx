@@ -2,10 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { THEME } from '@/constants/theme';
-import { ASSETS } from '@/constants/assets';
+import { getAvatarSource } from '@/constants/assets';
 
 interface HeaderSectionProps {
   currentAddress?: string;
+  avatarUrl?: string | null;
   onPressLocation?: () => void;
   onPressNotifications?: () => void;
   onPressProfile?: () => void;
@@ -13,6 +14,7 @@ interface HeaderSectionProps {
 
 export const HeaderSection: React.FC<HeaderSectionProps> = ({
   currentAddress = 'Jl. Pemuda No. 45, Surabaya',
+  avatarUrl,
   onPressLocation,
   onPressNotifications,
   onPressProfile,
@@ -57,7 +59,7 @@ export const HeaderSection: React.FC<HeaderSectionProps> = ({
             activeOpacity={0.8}
             accessibilityLabel="Profil Pengguna"
           >
-            <Image source={{ uri: ASSETS.userAvatar }} style={styles.avatar} />
+            <Image source={getAvatarSource(avatarUrl)} style={styles.avatar} />
           </TouchableOpacity>
         </View>
       </View>

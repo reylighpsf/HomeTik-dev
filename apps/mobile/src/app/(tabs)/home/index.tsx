@@ -9,7 +9,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useCreateBooking } from '@/hooks/use-bookings';
+import { useProfile } from '@/hooks/use-profile';
 import { THEME } from '@/constants/theme';
 import { TOP_BARBERS, BarberItem } from '@/constants/mock-data';
 import {
@@ -20,15 +20,13 @@ import {
   ExpressDispatchCard,
   PromosCarousel,
   TopRatedBarbers,
-  SafeShieldBanner,
 } from '@/components/home';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { profile } = useProfile();
   const [searchQuery, setSearchQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const { mutate: createBooking, isPending } = useCreateBooking();
 
   // Filter barbers by search query if typed
   const filteredBarbers = useMemo(() => {
@@ -49,72 +47,57 @@ export default function HomeScreen() {
   };
 
   const handleInstantDispatch = (
-    serviceName: string = 'Barber Kilat (Grab-Style Express)',
+    serviceName: string = 'Barber Kilat On-Demand',
     price: number = 85000
   ) => {
-    const confirmMessage =
-      'Konfirmasi panggilan barber kilat ke lokasi: Jl. Pemuda No. 45, Surabaya (Estimasi tiba: 10-12 mnt)?';
-
-    const triggerAction = () => {
-      createBooking(
-        {
-          service_type: serviceName,
-          notes: 'Panggilan instan express ke rumah via Hometik Grab-Style',
-          total_price: price,
-          scheduled_at: new Date().toISOString(),
-          user_location: {
-            latitude: -7.2656,
-            longitude: 112.7483,
-            address: 'Jl. Pemuda No. 45, Surabaya',
-          },
-        },
-        {
-          onSuccess: (data) => {
-            const successMsg = `Pesanan panggilan #${data.id.substring(
-              0,
-              8
-            )} berhasil dibuat! Mitra barber terdekat sedang menuju lokasi Anda.`;
-            if (Platform.OS === 'web') {
-              window.alert(successMsg);
-            } else {
-              Alert.alert('Barber On The Way! 🚀', successMsg);
-            }
-          },
-          onError: (err: any) => {
-            const errorMsg =
-              err?.message || 'Gagal memanggil barber. Silakan coba sesaat lagi.';
-            if (Platform.OS === 'web') {
-              window.alert(`Error: ${errorMsg}`);
-            } else {
-              Alert.alert('Gagal Memesan', errorMsg);
-            }
-          },
-        }
-      );
-    };
-
-    if (Platform.OS === 'web') {
-      if (window.confirm(confirmMessage)) {
-        triggerAction();
-      }
-    } else {
-      Alert.alert('Barber Kilat ⚡', confirmMessage, [
-        { text: 'Batal', style: 'cancel' },
-        { text: 'Panggil Sekarang', onPress: triggerAction },
-      ]);
-    }
+    // Arahkan ke pemilihan barber yang sedang online di area sekitar
+    router.push({
+      pathname: '/booking/select-barber',
+      params: {
+        serviceId: 'srv-barber-kilat',
+        serviceName,
+        price: price.toString(),
+      },
+    });
   };
 
   const handleBookBarber = (barber: BarberItem) => {
-    handleInstantDispatch(`Panggilan ${barber.name} (${barber.specialty})`, barber.price);
+    router.push({
+      pathname: '/booking/select-barber',
+      params: {
+        serviceId: 'srv-barber-kilat',
+        serviceName: `Panggilan Khusus: ${barber.name}`,
+        price: barber.price.toString(),
+      },
+    });
   };
 
   const handleSelectService = (serviceId: string) => {
-    if (serviceId === 'barber-kilat') {
-      handleInstantDispatch();
-    } else {
+    if (serviceId === 'lainnya') {
       router.push('/(tabs)/services');
+      return;
     }
+
+    const serviceMap: Record<string, { name: string; price: number }> = {
+      'barber-kilat': { name: 'Barber Kilat On-Demand', price: 85000 },
+      'booking-barber': { name: 'Gentleman Royal Grooming', price: 135000 },
+      'haircut-anak': { name: 'Haircut Ramah Anak (Kids)', price: 70000 },
+      'shaving': { name: 'Premium Hot Towel Shave', price: 65000 },
+      'spa': { name: 'Relaxing Head Spa & Massage', price: 110000 },
+      'cleaning': { name: 'Home & Room Sanitizing', price: 125000 },
+      'ac-repair': { name: 'AC Maintenance & Clean', price: 95000 },
+    };
+
+    const target = serviceMap[serviceId] || { name: 'Layanan Barber', price: 85000 };
+
+    router.push({
+      pathname: '/booking/select-barber',
+      params: {
+        serviceId,
+        serviceName: target.name,
+        price: target.price.toString(),
+      },
+    });
   };
 
   return (
@@ -135,6 +118,7 @@ export default function HomeScreen() {
         {/* 1. Header Section: Address Delivery & Action Buttons */}
         <HeaderSection
           currentAddress="Jl. Pemuda No. 45, Surabaya"
+          avatarUrl={profile?.avatar_url}
           onPressLocation={() => {
             Alert.alert('Pilih Alamat Antar', 'Pilih dari daftar alamat tersimpan atau tandai di peta.');
           }}
@@ -172,7 +156,7 @@ export default function HomeScreen() {
         {/* 5. Grab-Style Express Instant Barber Dispatch Card */}
         <ExpressDispatchCard
           onPressDispatch={() => handleInstantDispatch()}
-          isLoading={isPending}
+          isLoading={false}
         />
 
         {/* 6. Special Promo Carousel (Spesial Untukmu) */}
@@ -189,9 +173,6 @@ export default function HomeScreen() {
           onPressBookBarber={handleBookBarber}
           onPressViewAll={() => router.push('/(tabs)/services')}
         />
-
-        {/* 8. SafeShield Hygiene Protocol Banner */}
-        <SafeShieldBanner />
       </ScrollView>
     </SafeAreaView>
   );

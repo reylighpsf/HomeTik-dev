@@ -34,9 +34,9 @@ export const GRAB_SERVICES: ServiceGridItem[] = [
     icon: 'child-care',
   },
   {
-    id: 'safeshield',
-    title: 'SafeShield™',
-    icon: 'health-and-safety',
+    id: 'shaving',
+    title: 'Shaving & Beard',
+    icon: 'face',
   },
   {
     id: 'spa',

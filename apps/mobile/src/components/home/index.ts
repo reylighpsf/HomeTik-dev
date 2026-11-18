@@ -5,7 +5,6 @@ export * from './ServiceGrid8';
 export * from './ExpressDispatchCard';
 export * from './PromosCarousel';
 export * from './TopRatedBarbers';
-export * from './SafeShieldBanner';
 export * from './BentoCategories';
 export * from './HeroPromoCard';
 export * from './InstantCallBanner';

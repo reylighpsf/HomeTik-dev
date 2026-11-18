@@ -11,14 +11,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useCreateBooking } from '@/hooks/use-bookings';
+import { useAuth } from '@/context/AuthContext';
 import { THEME } from '@/constants/theme';
 import { SERVICE_CATALOG, CATEGORIES, ServiceItem } from '@/constants/mock-data';
 
 export default function ServicesScreen() {
   const router = useRouter();
+  const { session, isAuthenticated } = useAuth();
   const [activeCategoryId, setActiveCategoryId] = useState<string>('all');
-  const { mutate: createBooking, isPending } = useCreateBooking();
 
   const filterTabs = useMemo(() => {
     return [
@@ -33,59 +33,39 @@ export default function ServicesScreen() {
   }, [activeCategoryId]);
 
   const handleBookService = (service: ServiceItem) => {
-    const confirmMessage = `Pesan layanan "${service.name}" seharga Rp ${service.price.toLocaleString(
-      'id-ID'
-    )} ke alamat Anda?`;
+    // Route Guard: Tamu (Guest) harus login terlebih dahulu sebelum pesan
+    if (!session || !isAuthenticated) {
+      const alertTitle = 'Login Diperlukan';
+      const alertMessage =
+        'Silakan Login atau Daftar terlebih dahulu untuk memilih mitra barber online di sekitar Anda.';
 
-    const triggerAction = () => {
-      createBooking(
-        {
-          service_type: service.name,
-          notes: `Layanan ${service.name} (${service.durationMinutes} mnt)`,
-          total_price: service.price,
-          scheduled_at: new Date().toISOString(),
-          user_location: {
-            latitude: -7.2656,
-            longitude: 112.7483,
-            address: 'Jl. Pemuda No. 45, Surabaya',
-          },
-        },
-        {
-          onSuccess: (data) => {
-            const successMsg = `Pesanan #${data.id.substring(
-              0,
-              8
-            )} berhasil dibuat! Mitra akan segera dikonfirmasi.`;
-            if (Platform.OS === 'web') {
-              window.alert(successMsg);
-            } else {
-              Alert.alert('Pesanan Diterima! 🎉', successMsg);
-            }
-            router.push('/(tabs)/bookings');
-          },
-          onError: (err: any) => {
-            const errorMsg =
-              err?.message || 'Gagal membuat pesanan. Silakan coba kembali.';
-            if (Platform.OS === 'web') {
-              window.alert(`Error: ${errorMsg}`);
-            } else {
-              Alert.alert('Gagal Memesan', errorMsg);
-            }
-          },
+      if (Platform.OS === 'web') {
+        const confirmLogin = window.confirm(`${alertTitle}\n\n${alertMessage}\n\nLanjutkan ke halaman Login?`);
+        if (confirmLogin) {
+          router.push('/login');
         }
-      );
-    };
-
-    if (Platform.OS === 'web') {
-      if (window.confirm(confirmMessage)) {
-        triggerAction();
+      } else {
+        Alert.alert(alertTitle, alertMessage, [
+          { text: 'Nanti Saja', style: 'cancel' },
+          {
+            text: 'Login Sekarang',
+            style: 'default',
+            onPress: () => router.push('/login'),
+          },
+        ]);
       }
-    } else {
-      Alert.alert('Konfirmasi Pesanan', confirmMessage, [
-        { text: 'Batal', style: 'cancel' },
-        { text: 'Konfirmasi', onPress: triggerAction },
-      ]);
+      return;
     }
+
+    // Arahkan ke pemilihan barber online di sekitar
+    router.push({
+      pathname: '/booking/select-barber',
+      params: {
+        serviceId: service.id,
+        serviceName: service.name,
+        price: service.price.toString(),
+      },
+    });
   };
 
   return (
@@ -189,7 +169,6 @@ export default function ServicesScreen() {
                 <TouchableOpacity
                   style={styles.bookButton}
                   onPress={() => handleBookService(service)}
-                  disabled={isPending}
                   activeOpacity={0.8}
                 >
                   <Text style={styles.bookButtonText}>Pesan Sekarang</Text>
