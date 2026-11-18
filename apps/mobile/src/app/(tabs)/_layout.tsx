@@ -1,9 +1,12 @@
 import { Tabs } from 'expo-router';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { THEME } from '@/constants/theme';
+import { useAuth} from '@/context/AuthContext';
 
 export default function TabLayout() {
+  const { isAuthenticated } = useAuth();
+
   return (
     <Tabs
       screenOptions={{
@@ -26,9 +29,22 @@ export default function TabLayout() {
             </View>
           ),
         }}
+
       />
       <Tabs.Screen
         name="bookings/index"
+        listeners={{
+          tabPress: (e) => {
+            if (!isAuthenticated) {
+              e.preventDefault();
+
+              Alert.alert(
+                'Masuk ke Akun',
+                'Anda harus masuk terlebih dahulu untuk mengakses halaman ini.',
+              );
+            }
+          },
+        }}
         options={{
           title: 'Aktivitas',
           tabBarIcon: ({ color }) => (
@@ -39,6 +55,7 @@ export default function TabLayout() {
           ),
         }}
       />
+
       <Tabs.Screen
         name="services/index"
         options={{
@@ -48,8 +65,20 @@ export default function TabLayout() {
           ),
         }}
       />
+
       <Tabs.Screen
         name="profile/index"
+        listeners={{
+          tabPress: (e) => {
+            if (!isAuthenticated) {
+              e.preventDefault();
+              Alert.alert(
+                'Masuk ke Akun',
+                'Anda harus masuk terlebih dahulu untuk mengakses halaman ini.',
+              );
+            }
+          },
+        }}
         options={{
           title: 'Akun',
           tabBarIcon: ({ color }) => (

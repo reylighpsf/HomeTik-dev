@@ -1,7 +1,7 @@
 export const THEME = {
   colors: {
     // Brand Primary & Accents (Grab-Style Fresh Emerald & Amber)
-    primary: '#00B14F', // Official Grab Vibrant Emerald
+    primary: '#54d18c', // Official Grab Vibrant Emerald
     primaryDark: '#00873D',
     primaryContainer: '#E8F8F0', // Soft mint surface
     primaryFixed: '#C6F6D5',

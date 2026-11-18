@@ -7,9 +7,13 @@
     "packages/*"
   ],
   "scripts": {
+    "start": "npm --prefix apps/mobile run start",
+    "dev:mobile": "npm --prefix apps/mobile run start",
+    "android": "npm --prefix apps/mobile run android",
+    "ios": "npm --prefix apps/mobile run ios",
+    "web": "npm --prefix apps/mobile run web",
     "dev:backend": "npm --prefix apps/backend run dev",
     "dev:web": "npm --prefix apps/backend run dev",
-    "dev:mobile": "npm --prefix apps/mobile run start",
     "build:backend": "npm --prefix apps/backend run build",
     "build:web": "npm --prefix apps/backend run build",
     "lint": "npm run lint --workspaces",
