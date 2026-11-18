@@ -12,6 +12,7 @@ export const createBookingSchema = z.object({
   total_price: z.number().positive('Price must be positive'),
   user_location: locationSchema,
   scheduled_at: z.string().datetime().nullable().optional(),
+  barber_id: z.string().uuid().nullable().optional(),
 });
 
 export type CreateBookingInput = z.infer<typeof createBookingSchema>;

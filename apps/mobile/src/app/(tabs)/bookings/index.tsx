@@ -128,6 +128,16 @@ export default function BookingsScreen() {
           </View>
         )}
 
+        {/* Notes & Barber Assignment */}
+        {item.notes && (
+          <View style={styles.notesRow}>
+            <Ionicons name="chatbubble-ellipses-outline" size={13} color="#64748B" />
+            <Text style={styles.notesText} numberOfLines={2}>
+              {item.notes}
+            </Text>
+          </View>
+        )}
+
         {/* Order Details & Price */}
         <View style={styles.cardFooter}>
           <View>
@@ -377,6 +387,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: THEME.colors.textSecondary,
     flex: 1,
+  },
+  notesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 6,
+    marginBottom: THEME.spacing.sm,
+  },
+  notesText: {
+    fontSize: 11,
+    color: '#64748B',
+    flex: 1,
+    lineHeight: 15,
   },
   cardFooter: {
     flexDirection: 'row',

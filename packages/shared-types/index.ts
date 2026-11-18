@@ -106,6 +106,7 @@ export interface CreateBookingPayload {
   total_price: number;
   user_location: { latitude: number; longitude: number; address: string };
   scheduled_at?: string | null;
+  barber_id?: string | null;
 }
 
 // ---------------------------------------------------------------------------

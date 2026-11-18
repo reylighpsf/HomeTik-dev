@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { getApiBaseUrl } from '@/lib/api';
 import type { Booking, CreateBookingPayload, ApiResponse } from '@hometik/shared-types';
 
 const BOOKINGS_KEY = ['bookings'] as const;
@@ -33,8 +34,9 @@ export function useCreateBooking() {
 
       if (!session) throw new Error('Not authenticated');
 
+      const apiUrl = getApiBaseUrl();
       const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/api/bookings`,
+        `${apiUrl}/api/bookings`,
         {
           method: 'POST',
           headers: {

@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { service_type, notes, total_price, user_location, scheduled_at } =
+    const { service_type, notes, total_price, user_location, scheduled_at, barber_id } =
       validation.data;
 
     const clientForDb =
@@ -116,13 +116,14 @@ export async function POST(request: NextRequest) {
       .from('bookings')
       .insert({
         user_id: user.id,
+        barber_id: barber_id ?? null,
         service_type,
         notes: notes ?? null,
         total_price,
         user_address: user_location.address,
         user_location: `POINT(${user_location.longitude} ${user_location.latitude})`,
         scheduled_at: scheduled_at ?? null,
-        status: 'PENDING',
+        status: barber_id ? 'ACCEPTED' : 'PENDING',
       })
       .select()
       .single();
