@@ -52,6 +52,27 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       const data = await response.json();
 
       if (!response.ok || data.error) {
+        // Jika akun belum menyelesaikan verifikasi OTP, arahkan otomatis ke layar /verify-otp
+        if (data.code === 'EMAIL_NOT_CONFIRMED') {
+          showAlert(
+            'Verifikasi OTP Diperlukan 📧',
+            data.error ||
+              'Akun Anda belum diverifikasi. Kami telah mengirim ulang kode OTP 8-digit ke email Anda.'
+          );
+          router.push({
+            pathname: '/verify-otp',
+            params: {
+              email: data.email || email.trim(),
+              password: data.needsPasswordSetup ? password : '',
+              channel: 'email',
+              purpose: 'signup',
+              otpType: data.otpType || 'signup',
+            },
+          });
+          setIsLoading(false);
+          return;
+        }
+
         showAlert('Login Gagal', data.error || 'Email atau kata sandi salah.');
         setIsLoading(false);
         return;

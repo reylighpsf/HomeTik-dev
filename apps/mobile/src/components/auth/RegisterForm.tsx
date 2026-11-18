@@ -35,6 +35,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [useOtpVerification, setUseOtpVerification] = useState(true);
 
   const showAlert = (title: string, message: string) => {
     if (Platform.OS === 'web') {
@@ -44,30 +45,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
     }
   };
 
-  const handleRegister = async () => {
-    if (!name.trim()) {
-      showAlert('Input Tidak Lengkap', 'Silakan masukkan nama lengkap Anda.');
-      return;
-    }
-    if (!email.trim()) {
-      showAlert('Input Tidak Lengkap', 'Silakan masukkan alamat email Anda.');
-      return;
-    }
-    if (!password) {
-      showAlert('Input Tidak Lengkap', 'Silakan masukkan kata sandi Anda.');
-      return;
-    }
-    if (password.length < 6) {
-      showAlert('Kata Sandi Lemah', 'Kata sandi minimal harus 6 karakter.');
-      return;
-    }
-    if (password !== confirmPassword) {
-      showAlert('Kata Sandi Tidak Cocok', 'Konfirmasi kata sandi tidak sesuai.');
-      return;
-    }
-
-    setIsLoading(true);
-
+  const executeDirectRegister = async () => {
     try {
       const apiUrl = `${getApiBaseUrl()}/api/auth/register`;
       const response = await fetch(apiUrl, {
@@ -90,7 +68,6 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
 
       if (!response.ok || data.error) {
         showAlert('Registrasi Gagal', data.error || 'Terjadi kesalahan saat mendaftar.');
-        setIsLoading(false);
         return;
       }
 
@@ -119,9 +96,104 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
         'Koneksi Gagal',
         `Gagal terhubung ke backend (${getApiBaseUrl()}). Pastikan server backend sedang berjalan.`
       );
-    } finally {
-      setIsLoading(false);
     }
+  };
+
+  const handleRegister = async () => {
+    if (!name.trim()) {
+      showAlert('Input Tidak Lengkap', 'Silakan masukkan nama lengkap Anda.');
+      return;
+    }
+    if (!email.trim()) {
+      showAlert('Input Tidak Lengkap', 'Silakan masukkan alamat email Anda.');
+      return;
+    }
+    if (!password) {
+      showAlert('Input Tidak Lengkap', 'Silakan masukkan kata sandi Anda.');
+      return;
+    }
+    if (password.length < 6) {
+      showAlert('Kata Sandi Lemah', 'Kata sandi minimal harus 6 karakter.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      showAlert('Kata Sandi Tidak Cocok', 'Konfirmasi kata sandi tidak sesuai.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    // Jika pengguna mengaktifkan verifikasi OTP via Email (gratis bawaan Supabase)
+    if (useOtpVerification && email.trim()) {
+      try {
+        const apiUrl = `${getApiBaseUrl()}/api/auth/otp/send`;
+        const res = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email.trim(),
+            password,
+            phone: phone.trim() || undefined,
+            channel: 'email',
+            purpose: 'signup',
+            name: name.trim(),
+            role,
+          }),
+        });
+
+        const resData = await res.json();
+        if (res.ok && !resData.error) {
+          // Jika proyek Supabase mematikan Confirm Email, session langsung aktif
+          if (resData.skipOtp && resData.session) {
+            await supabase.auth.setSession({
+              access_token: resData.session.access_token,
+              refresh_token: resData.session.refresh_token,
+            });
+            showAlert('Pendaftaran Berhasil!', 'Akun Anda berhasil dibuat. Mengarahkan ke beranda...');
+            if (onSuccess) {
+              onSuccess();
+            } else {
+              router.replace('/(tabs)/home');
+            }
+            setIsLoading(false);
+            return;
+          }
+
+          showAlert(
+            'Kode OTP Dikirim! 📧',
+            `Kode verifikasi 8-digit telah dikirimkan ke email ${email.trim()}. Silakan periksa kotak masuk atau folder spam Anda.`
+          );
+          router.push({
+            pathname: '/verify-otp',
+            params: {
+              phone: phone.trim(),
+              email: email.trim(),
+              name: name.trim(),
+              role,
+              channel: 'email',
+              purpose: 'signup',
+              otpType: resData.otpType || 'signup',
+            },
+          });
+          setIsLoading(false);
+          return;
+        } else {
+          console.warn('[RegisterForm] Email OTP send issue:', resData.error);
+          showAlert(
+            'Registrasi Tidak Dapat Dilanjutkan',
+            resData.error || 'Gagal mengirim kode OTP ke email. Coba beberapa saat lagi.'
+          );
+          setIsLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('[RegisterForm] OTP send exception, fallback to direct register:', err);
+      }
+    }
+
+    // Direct register jika verifikasi OTP dinonaktifkan
+    await executeDirectRegister();
+    setIsLoading(false);
   };
 
   const handleGoToLogin = () => {
@@ -314,6 +386,25 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
             </View>
           </View>
 
+          {/* OTP Verification Toggle */}
+          <TouchableOpacity
+            style={styles.otpToggleRow}
+            onPress={() => setUseOtpVerification(!useOtpVerification)}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name={useOtpVerification ? 'checkbox' : 'square-outline'}
+              size={18}
+              color={useOtpVerification ? THEME.colors.primary : THEME.colors.textMuted}
+            />
+            <View style={{ flex: 1, marginLeft: 8 }}>
+              <Text style={styles.otpToggleTitle}>Verifikasi Kode OTP via Email</Text>
+              <Text style={styles.otpToggleSub}>
+                Kode 8-digit dikirimkan ke email Anda untuk keamanan aktivasi akun
+              </Text>
+            </View>
+          </TouchableOpacity>
+
           {/* Submit Button */}
           <TouchableOpacity
             onPress={handleRegister}
@@ -490,5 +581,25 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: THEME.colors.secondary,
+  },
+  otpToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginVertical: 4,
+  },
+  otpToggleTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  otpToggleSub: {
+    fontSize: 10,
+    color: '#64748B',
+    marginTop: 1,
   },
 });

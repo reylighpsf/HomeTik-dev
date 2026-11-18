@@ -1,5 +1,27 @@
 import { createServerClient as createClient } from '@supabase/ssr';
+import { createClient as createSupabaseJsClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+
+/**
+ * Client stateless tanpa PKCE (flowType: 'implicit') khusus untuk alur Mobile OTP
+ * agar Supabase GoTrue mengeluarkan token OTP standar (bukan PKCE code_challenge)
+ * yang dapat langsung diverifikasi melalui /api/auth/otp/verify.
+ */
+export function createStatelessAuthClient() {
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+  const supabaseAnonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key';
+
+  return createSupabaseJsClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      flowType: 'implicit',
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
+}
 
 export async function createServerSupabaseClient() {
   const cookieStore = await cookies();

@@ -13,23 +13,26 @@ export const registerSchema = z.object({
 export type RegisterInput = z.infer<typeof registerSchema>;
 
 export const sendOtpSchema = z.object({
-  phone: z.string().min(8, 'Nomor HP minimal 8 karakter').optional(),
-  email: z.string().email('Format email tidak valid').optional(),
-  channel: z.enum(['sms', 'whatsapp']).default('sms'),
+  phone: z.string().min(8, 'Nomor HP minimal 8 karakter').optional().or(z.literal('')),
+  email: z.string().email('Format email tidak valid').optional().or(z.literal('')),
+  password: z.string().min(6, 'Kata sandi minimal 6 karakter').optional(),
+  channel: z.enum(['email', 'sms', 'whatsapp']).default('email'),
+  purpose: z.enum(['signup', 'forgot_password', 'login']).optional(),
+  isResend: z.boolean().optional(),
   name: z.string().optional(),
   role: z.enum(['USER', 'BARBER', 'ADMIN']).default('USER'),
-}).refine((data) => data.phone || data.email, {
+}).refine((data) => Boolean(data.phone) || Boolean(data.email), {
   message: 'Nomor telepon atau email wajib diisi untuk pengiriman OTP',
 });
 
 export type SendOtpInput = z.infer<typeof sendOtpSchema>;
 
 export const verifyOtpSchema = z.object({
-  phone: z.string().optional(),
-  email: z.string().email().optional(),
+  phone: z.string().optional().or(z.literal('')),
+  email: z.string().email().optional().or(z.literal('')),
   token: z.string().min(4, 'Kode OTP minimal 4-6 digit'),
-  type: z.enum(['sms', 'email', 'phone_change']).default('sms'),
-}).refine((data) => data.phone || data.email, {
+  type: z.enum(['email', 'sms', 'signup', 'recovery', 'magiclink', 'phone_change']).default('email'),
+}).refine((data) => Boolean(data.phone) || Boolean(data.email), {
   message: 'Nomor telepon atau email wajib disertakan untuk verifikasi OTP',
 });
 
