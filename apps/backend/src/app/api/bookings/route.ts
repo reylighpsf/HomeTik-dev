@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createServerSupabaseClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { createBookingSchema } from '@/lib/validators/booking';
 import { DispatchingService } from '@/services/dispatching.service';
@@ -12,7 +12,7 @@ import type { ApiResponse, Booking } from '@hometik/shared-types';
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { user, error: authError } = await getAuthenticatedUser();
 
     if (authError || !user) {
       return NextResponse.json<ApiResponse<null>>(
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { user, error: authError } = await getAuthenticatedUser();
 
     if (authError || !user) {
       return NextResponse.json<ApiResponse<null>>(

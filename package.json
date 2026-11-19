@@ -9,6 +9,9 @@
   "scripts": {
     "start": "npm --prefix apps/mobile run start",
     "dev:mobile": "npm --prefix apps/mobile run start",
+    "dev:mitra": "npm --prefix apps/mitra run start",
+    "mitra:android": "npm --prefix apps/mitra run android",
+    "mitra:web": "npm --prefix apps/mitra run web",
     "android": "npm --prefix apps/mobile run android",
     "ios": "npm --prefix apps/mobile run ios",
     "web": "npm --prefix apps/mobile run web",

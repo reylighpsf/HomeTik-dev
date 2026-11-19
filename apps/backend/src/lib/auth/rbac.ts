@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createServerSupabaseClient, getAuthenticatedUser } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import type { UserRole } from '@hometik/shared-types';
 
 export interface AuthContext {
@@ -9,27 +10,31 @@ export interface AuthContext {
 }
 
 /**
- * Mendapatkan role user dari JWT claim, app_metadata, atau tabel profiles
+ * Mendapatkan role user dari JWT claim, app_metadata, user_metadata, atau tabel profiles
  */
 export async function getCurrentUserRole(): Promise<AuthContext | null> {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
 
   if (authError || !user) {
     return null;
   }
 
-  // 1. Cek claim app_metadata (aman, diset server-side / custom claims hook)
+  // 1. Cek claim app_metadata / user_metadata
   let role: UserRole =
     (user.app_metadata?.role as UserRole) ||
-    (user.app_metadata?.user_role as UserRole);
+    (user.app_metadata?.user_role as UserRole) ||
+    (user.user_metadata?.role as UserRole);
 
   // 2. Jika belum ada di claim JWT, ambil langsung dari tabel profiles
   if (!role) {
-    const { data: profile } = await supabase
+    const supabase = await createServerSupabaseClient();
+    const clientForDb =
+      process.env.SUPABASE_SERVICE_ROLE_KEY &&
+      process.env.SUPABASE_SERVICE_ROLE_KEY !== 'placeholder-service-role-key'
+        ? supabaseAdmin
+        : supabase;
+
+    const { data: profile } = await clientForDb
       .from('profiles')
       .select('role')
       .eq('id', user.id)

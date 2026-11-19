@@ -1,6 +1,6 @@
 import { createServerClient as createClient } from '@supabase/ssr';
 import { createClient as createSupabaseJsClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 
 /**
  * Client stateless tanpa PKCE (flowType: 'implicit') khusus untuk alur Mobile OTP
@@ -21,6 +21,30 @@ export function createStatelessAuthClient() {
       detectSessionInUrl: false,
     },
   });
+}
+
+/**
+ * Mengambil user terautentikasi baik dari Authorization: Bearer <jwt> (Mobile / Mitra App)
+ * maupun dari cookie SSR (Web Dashboard).
+ */
+export async function getAuthenticatedUser() {
+  const headerStore = await headers();
+  const authHeader = headerStore.get('authorization');
+
+  if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
+    const token = authHeader.slice(7).trim();
+    if (token) {
+      const stateless = createStatelessAuthClient();
+      const { data, error } = await stateless.auth.getUser(token);
+      if (!error && data?.user) {
+        return { user: data.user, error: null };
+      }
+    }
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.auth.getUser();
+  return { user: data?.user ?? null, error };
 }
 
 export async function createServerSupabaseClient() {
